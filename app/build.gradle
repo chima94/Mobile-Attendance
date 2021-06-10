@@ -1,0 +1,125 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+    id 'androidx.navigation.safeargs.kotlin'
+    id 'dagger.hilt.android.plugin'
+    //id 'com.google.gms.google-services'
+}
+
+android {
+    compileSdk 30
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        applicationId "com.example.smartattendancesystem"
+        minSdk 21
+        targetSdk 30
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled = true
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+        useIR = true
+    }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion compose_version
+        kotlinCompilerVersion '1.4.32'
+    }
+    kapt {
+        correctErrorTypes = true
+    }
+
+
+
+
+
+}
+
+dependencies {
+
+    implementation 'androidx.core:core-ktx:1.5.0'
+    implementation 'androidx.appcompat:appcompat:1.3.0'
+    implementation 'com.google.android.material:material:1.3.0'
+    implementation "androidx.compose.ui:ui:$compose_version"
+    implementation "androidx.compose.material:material:$compose_version"
+    implementation "androidx.compose.ui:ui-tooling:$compose_version"
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
+    implementation 'androidx.activity:activity-compose:1.3.0-beta01'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    testImplementation 'junit:junit:4.+'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+
+    //compose libs
+    implementation "androidx.compose.material:material-icons-extended:$compose_version"
+    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
+
+    //pagging
+    implementation "androidx.paging:paging-runtime:$paging"
+    implementation "androidx.paging:paging-compose:$pagingCompose"
+
+    //compose
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleViewModelCompose"
+    implementation "androidx.constraintlayout:constraintlayout-compose:$constraintLayoutCompose"
+
+    //lottie
+    implementation "com.airbnb.android:lottie:$lottie"
+    implementation "com.airbnb.android:lottie-compose:$lottieCompose"
+
+    //room
+    implementation "androidx.room:room-runtime:$room"
+    implementation "androidx.room:room-ktx:$room"
+    kapt "androidx.room:room-compiler:$room"
+
+    implementation "com.google.accompanist:accompanist-coil:$accompanistCoil"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleRuntimeKtx"
+
+    //coroutine
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutine"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutine"
+
+    //livedata + viewModel
+    implementation "androidx.lifecycle:lifecycle-extensions:$androidLifecycleGrouped"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$androidLifecycleGrouped"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$androidLifecycleGrouped"
+
+    //fontAwesome
+    //implementation "com.github.Gurupreet:FontAwesomeCompose:$fontAwesomeCompose"
+
+    //datastore
+    implementation "androidx.datastore:datastore-preferences:1.0.0-beta01"
+
+    //timber
+    implementation "com.jakewharton.timber:timber:$timberVersion"
+
+    // Hilt
+    implementation "com.google.dagger:hilt-android:$hiltVersion"
+    kapt "com.google.dagger:hilt-android-compiler:$hiltVersion"
+    implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hiltAndroidXVersion"
+    kapt "androidx.hilt:hilt-compiler:$hiltAndroidXVersion"
+
+    //navigation
+    implementation "androidx.navigation:navigation-fragment-ktx:2.3.5"
+    implementation "androidx.navigation:navigation-ui-ktx:2.3.5"
+}

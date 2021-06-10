@@ -1,0 +1,56 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    ext {
+        compose_version = '1.0.0-beta08'
+        nav_compose_version = '1.0.0-alpha08'
+        kotlin_version = "1.4.31"
+        timberVersion = '4.7.1'
+        hiltVersion = "2.28-alpha"
+        hiltAndroidXVersion = '1.0.0-alpha03'
+        nav_version = "2.3.1"
+        paging = "3.0.0"
+        pagingCompose = "1.0.0-alpha09"
+        lifecycleViewModelCompose = "1.0.0-alpha05"
+        constraintLayoutCompose = "1.0.0-alpha07"
+        lottieCompose = "1.0.0-beta03-1"
+        lottie = "3.6.1"
+        room = "2.3.0-beta02"
+        accompanistCoil = "0.10.0"
+        lifecycleRuntimeKtx = "2.3.1"
+        coroutine = "1.4.2"
+        androidLifecycleGrouped  ="2.2.0"
+        fontAwesomeCompose = "1.0.0-beta01"
+        snapshot = ""
+    }
+    repositories {
+        mavenLocal()
+        google()
+        mavenCentral()
+        jcenter()
+
+        if (snapshot) {
+            maven { url "https://androidx.dev/snapshots/builds/${snapshot} /artifacts/repository/" }
+            maven { url "http://androidx.dev/storage/repository/androidx/constraintlayout" }
+        }
+
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:7.1.0-alpha01"
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.10'
+        classpath "com.google.dagger:hilt-android-gradle-plugin:$hiltVersion"
+        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$nav_version"
+        //classpath 'com.google.gms:google-services:4.3.5'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
