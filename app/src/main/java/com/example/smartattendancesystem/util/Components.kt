@@ -224,7 +224,6 @@ fun Password(
 
 
 
-
 @Composable
 fun TextFieldError(errorText : String){
     Row(modifier = Modifier.fillMaxWidth()){
@@ -234,5 +233,17 @@ fun TextFieldError(errorText : String){
             modifier = Modifier.fillMaxWidth(),
             style = LocalTextStyle.current.copy(color = MaterialTheme.colors.error)
         )
+    }
+}
+
+
+@Composable
+fun ProgressBar(){
+    Row(
+        modifier = Modifier.padding(16.dp)
+            .fillMaxSize(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        CircularProgressIndicator()
     }
 }

@@ -6,12 +6,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.example.smartattendancesystem.ui.BaseView
 import com.example.smartattendancesystem.ui.theme.AppThemeState
 import com.example.smartattendancesystem.ui.theme.SystemUIController
 import com.example.smartattendancesystem.util.Screen
 import com.example.smartattendancesystem.util.navigate
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class RegisterFragment : Fragment() {
 
     override fun onCreateView(

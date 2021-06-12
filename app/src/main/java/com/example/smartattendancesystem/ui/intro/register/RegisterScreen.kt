@@ -13,20 +13,24 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.smartattendancesystem.ui.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.smartattendancesystem.ui.intro.*
+import com.example.smartattendancesystem.ui.theme.SmartAttendanceSystemTheme
 import com.example.smartattendancesystem.util.*
 
 
 @Composable
 fun RegisterScreen(onBackPressed : (Boolean) -> Unit){
-    val viewModel = RegisterViewModel()
 
-    RegisterScreenScaffold() { action ->
+    val viewModel : RegisterViewModel = viewModel()
+    val viewState by rememberFlowWithLifecycle(flow = viewModel.state)
+        .collectAsState(initial = RegisterDataState.Nothing)
+
+    RegisterScreenScaffold(state = viewState) { action ->
         when(action){
             RegisterAction.NavigateBack ->{ onBackPressed(true)}
             is RegisterAction.Register ->{
-                viewModel.register()
+                viewModel.register(action.email, action.name, action.password, action.userSelected)
             }
         }
     }
@@ -34,7 +38,7 @@ fun RegisterScreen(onBackPressed : (Boolean) -> Unit){
 
 
 @Composable
-internal fun RegisterScreenScaffold(signUpAction : (RegisterAction) -> Unit){
+internal fun RegisterScreenScaffold(state : RegisterDataState, signUpAction : (RegisterAction) -> Unit){
     var userSelected by remember{ mutableStateOf("Lecturer")}
 
     Scaffold(
@@ -51,7 +55,7 @@ internal fun RegisterScreenScaffold(signUpAction : (RegisterAction) -> Unit){
                     UserChooser (userSelected = {
                         userSelected = it
                     })
-                    SignUpContent(userSelected,signUpAction)
+                    SignUpContent(state, userSelected,signUpAction)
                 }
             }
         }
@@ -98,7 +102,19 @@ private fun UserChooser( userSelected: (String) -> Unit) {
 
 
 @Composable
-private fun SignUpContent(userSelected: String, onNavigation: (RegisterAction) -> Unit) {
+private fun SignUpContent(
+    state: RegisterDataState,
+    userSelected: String,
+    onNavigation: (RegisterAction) -> Unit
+) {
+
+    var loading = false
+
+    when(state){
+        RegisterDataState.Loading -> { loading = true}
+        is RegisterDataState.Success -> { loading = false}
+        is RegisterDataState.Error ->{}
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
@@ -165,10 +181,15 @@ private fun SignUpContent(userSelected: String, onNavigation: (RegisterAction) -
                 .padding(12.dp),
             shape = RoundedCornerShape(12.dp),
             elevation = ButtonDefaults.elevation(),
-            enabled = emailState.isValid && nameState.isValid && passwordState.isValid && confirmPasswordState.isValid
+            enabled = emailState.isValid && nameState.isValid
+                    && passwordState.isValid && confirmPasswordState.isValid && !loading
 
         ){
             Text(text = "Register")
+        }
+
+        if(loading){
+            ProgressBar()
         }
     }
 
@@ -178,5 +199,8 @@ private fun SignUpContent(userSelected: String, onNavigation: (RegisterAction) -
 @Preview
 @Composable
 private fun RegisterScreen(){
-    RegisterScreen{}
+    SmartAttendanceSystemTheme() {
+        RegisterScreen{}
+    }
+
 }

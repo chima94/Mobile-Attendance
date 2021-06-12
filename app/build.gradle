@@ -2,9 +2,9 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'kotlin-kapt'
-    id 'androidx.navigation.safeargs.kotlin'
     id 'dagger.hilt.android.plugin'
-    //id 'com.google.gms.google-services'
+    id 'androidx.navigation.safeargs.kotlin'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -45,8 +45,9 @@ android {
         kotlinCompilerExtensionVersion compose_version
         kotlinCompilerVersion '1.4.32'
     }
-    kapt {
-        correctErrorTypes = true
+
+    lintOptions {
+        abortOnError false
     }
 
 
@@ -93,19 +94,20 @@ dependencies {
     kapt "androidx.room:room-compiler:$room"
 
     implementation "com.google.accompanist:accompanist-coil:$accompanistCoil"
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleRuntimeKtx"
 
     //coroutine
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutine"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutine"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.4.2"
 
     //livedata + viewModel
     implementation "androidx.lifecycle:lifecycle-extensions:$androidLifecycleGrouped"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$androidLifecycleGrouped"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$androidLifecycleGrouped"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.4.0-alpha01"
 
-    //fontAwesome
-    //implementation "com.github.Gurupreet:FontAwesomeCompose:$fontAwesomeCompose"
+
+
 
     //datastore
     implementation "androidx.datastore:datastore-preferences:1.0.0-beta01"
@@ -117,9 +119,16 @@ dependencies {
     implementation "com.google.dagger:hilt-android:$hiltVersion"
     kapt "com.google.dagger:hilt-android-compiler:$hiltVersion"
     implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hiltAndroidXVersion"
-    kapt "androidx.hilt:hilt-compiler:$hiltAndroidXVersion"
 
     //navigation
     implementation "androidx.navigation:navigation-fragment-ktx:2.3.5"
     implementation "androidx.navigation:navigation-ui-ktx:2.3.5"
+
+    //firebase
+    implementation 'com.google.firebase:firebase-firestore-ktx:23.0.1'
+    implementation 'com.google.firebase:firebase-auth-ktx:21.0.1'
+}
+
+kapt {
+    correctErrorTypes true
 }
