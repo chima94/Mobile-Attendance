@@ -17,20 +17,34 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.smartattendancesystem.ui.intro.*
 import com.example.smartattendancesystem.ui.theme.SmartAttendanceSystemTheme
 import com.example.smartattendancesystem.util.*
+import timber.log.Timber
 
 
 @Composable
-fun RegisterScreen(onBackPressed : (Boolean) -> Unit){
+fun RegisterScreen(onNavigation: (RegisterAction) -> Unit){
 
     val viewModel : RegisterViewModel = viewModel()
     val viewState by rememberFlowWithLifecycle(flow = viewModel.state)
         .collectAsState(initial = RegisterDataState.Nothing)
+    var loading = false
 
-    RegisterScreenScaffold(state = viewState) { action ->
+    when(viewState){
+        RegisterDataState.Loading -> {
+            loading = true
+        }
+        is RegisterDataState.Success -> {
+            onNavigation(RegisterAction.SignIn)
+        }
+        is RegisterDataState.Error ->{
+            onNavigation(RegisterAction.DisplayError((viewState as RegisterDataState.Error).message))
+        }
+    }
+
+    RegisterScreenScaffold(loading = loading) { action ->
         when(action){
-            RegisterAction.NavigateBack ->{ onBackPressed(true)}
+            RegisterAction.NavigateBack ->{ onNavigation(RegisterAction.NavigateBack)}
             is RegisterAction.Register ->{
-                viewModel.register(action.email, action.name, action.password, action.userSelected)
+                viewModel.register(action)
             }
         }
     }
@@ -38,7 +52,10 @@ fun RegisterScreen(onBackPressed : (Boolean) -> Unit){
 
 
 @Composable
-internal fun RegisterScreenScaffold(state : RegisterDataState, signUpAction : (RegisterAction) -> Unit){
+internal fun RegisterScreenScaffold(
+    loading : Boolean,
+    signUpAction : (RegisterAction) -> Unit
+){
     var userSelected by remember{ mutableStateOf("Lecturer")}
 
     Scaffold(
@@ -55,7 +72,7 @@ internal fun RegisterScreenScaffold(state : RegisterDataState, signUpAction : (R
                     UserChooser (userSelected = {
                         userSelected = it
                     })
-                    SignUpContent(state, userSelected,signUpAction)
+                    SignUpContent(loading, userSelected, signUpAction)
                 }
             }
         }
@@ -64,9 +81,11 @@ internal fun RegisterScreenScaffold(state : RegisterDataState, signUpAction : (R
 
 
 @Composable
-private fun UserChooser( userSelected: (String) -> Unit) {
+private fun UserChooser(
+    userSelected: (String) -> Unit
+) {
 
-    var selected by remember { mutableStateOf("Lecturer")}
+    var selected by remember{ mutableStateOf("Lecturer")}
 
     Row{
         RadioButton(selected = selected == "Lecturer", onClick = {
@@ -103,18 +122,10 @@ private fun UserChooser( userSelected: (String) -> Unit) {
 
 @Composable
 private fun SignUpContent(
-    state: RegisterDataState,
+    loading : Boolean = false,
     userSelected: String,
     onNavigation: (RegisterAction) -> Unit
 ) {
-
-    var loading = false
-
-    when(state){
-        RegisterDataState.Loading -> { loading = true}
-        is RegisterDataState.Success -> { loading = false}
-        is RegisterDataState.Error ->{}
-    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
 

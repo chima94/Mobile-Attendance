@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.smartattendancesystem.data.repositories.AuthRepository
+import com.example.smartattendancesystem.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,9 +24,14 @@ class RegisterViewModel @Inject constructor(
     val state: StateFlow<RegisterDataState> = _state
 
 
-    fun register(email: String, name: String, password: String, userSelected: String) {
+    internal fun register(action : RegisterAction.Register) {
         viewModelScope.launch {
-            authRepository.register().collect {dataState ->
+            authRepository.register(User(
+                name = action.name,
+                email = action.email,
+                password = action.password,
+                userType = action.userSelected
+            )).collect { dataState ->
                 _state.value = dataState
             }
         }

@@ -1,11 +1,16 @@
 package com.example.smartattendancesystem.di
 
+import android.content.Context
 import com.example.smartattendancesystem.data.remote.AuthManager
 import com.example.smartattendancesystem.data.repositories.AuthRepository
+import com.example.smartattendancesystem.data.repositories.UserManagerDataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Singleton
 
 @Module
@@ -20,7 +25,21 @@ object AuthRepositoryModule {
 
     @Singleton
     @Provides
-    fun provideAuthRepository(authManager : AuthManager) : AuthRepository{
-        return AuthRepository(authManager)
+    fun provideUserManagerDataStore(@ApplicationContext context: Context) : UserManagerDataStore{
+        return UserManagerDataStore(context)
+    }
+
+    @Singleton
+    @Provides
+    fun provideDispatcher() = Dispatchers.Default
+
+    @Singleton
+    @Provides
+    fun provideAuthRepository(
+        authManager : AuthManager,
+        userManagerDataStore: UserManagerDataStore,
+        dispatcher : CoroutineDispatcher
+    ) : AuthRepository{
+        return AuthRepository(authManager, userManagerDataStore, dispatcher)
     }
 }

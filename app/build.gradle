@@ -110,7 +110,7 @@ dependencies {
 
 
     //datastore
-    implementation "androidx.datastore:datastore-preferences:1.0.0-beta01"
+    implementation "androidx.datastore:datastore-preferences:1.0.0-alpha04"
 
     //timber
     implementation "com.jakewharton.timber:timber:$timberVersion"
@@ -127,6 +127,7 @@ dependencies {
     //firebase
     implementation 'com.google.firebase:firebase-firestore-ktx:23.0.1'
     implementation 'com.google.firebase:firebase-auth-ktx:21.0.1'
+
 }
 
 kapt {

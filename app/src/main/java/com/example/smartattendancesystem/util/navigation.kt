@@ -10,7 +10,7 @@ import com.example.smartattendancesystem.ui.intro.splash.SplashFragmentDirection
 import java.security.InvalidParameterException
 
 enum class Screen{
-    SPLASH, ONBOARD, LOGIN, REGISTER, REGISTER_TO_ONBOARD, LOGIN_TO_ONBOARD
+    SPLASH, ONBOARD, LOGIN, REGISTER, REGISTER_TO_ONBOARD, LOGIN_TO_ONBOARD, MAIN
 }
 
 fun Fragment.navigate(to : Screen, from : Screen){
