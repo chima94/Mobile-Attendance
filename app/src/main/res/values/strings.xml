@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Smart Attendance System</string>
     <string name="title_activity_home">HomeActivity</string>
+    <string name="attendance">Attendance</string>
+    <string name="history">History</string>
+    <string name="profile">Profile</string>
 </resources>
