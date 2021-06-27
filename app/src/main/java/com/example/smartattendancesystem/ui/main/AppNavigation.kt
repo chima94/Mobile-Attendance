@@ -1,6 +1,7 @@
 package com.example.smartattendancesystem.ui.main
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -10,6 +11,7 @@ import androidx.navigation.navigation
 import com.example.smartattendancesystem.ui.main.attendance.Attendance
 import com.example.smartattendancesystem.ui.main.history.History
 import com.example.smartattendancesystem.ui.main.profile.Profile
+import com.example.smartattendancesystem.ui.main.update.UpdateScreen
 
 internal sealed class Screen(val route : String){
     object Attendance : Screen("attendanceroot")
@@ -21,6 +23,8 @@ private sealed class LeafScreen(val route : String){
     object Attendance : LeafScreen("attendance")
     object History : LeafScreen("history")
     object Profile : LeafScreen("profile")
+
+    object Update : LeafScreen("update")
 }
 
 
@@ -45,6 +49,7 @@ private fun NavGraphBuilder.addAttendanceTopLevel(
         startDestination = LeafScreen.Attendance.route
     ){
         addAttendance(navController)
+        addUpdate(navController)
     }
 }
 
@@ -74,7 +79,11 @@ private fun NavGraphBuilder.addProfileTopLevel(navController: NavController){
 
 private fun NavGraphBuilder.addAttendance(navController: NavController){
     composable(LeafScreen.Attendance.route){
-        Attendance()
+        Attendance(
+            verify = {
+                navController.navigate(LeafScreen.Update.route)
+            }
+        )
     }
 }
 
@@ -87,5 +96,14 @@ private fun NavGraphBuilder.addHistory(navController: NavController){
 private fun NavGraphBuilder.addProfile(navController: NavController){
     composable(LeafScreen.Profile.route){
         Profile()
+    }
+}
+
+
+private fun NavGraphBuilder.addUpdate(navController: NavController){
+    composable(LeafScreen.Update.route){
+        UpdateScreen(onNavigateBack = {
+            navController.popBackStack()
+        })
     }
 }

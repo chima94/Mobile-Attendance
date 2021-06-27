@@ -10,3 +10,4 @@ val green700 = Color(0xff388e3c)
 
 val Teal200 = Color(0xFF03DAC5)
 
+val gradientGreen = listOf(green500, green200)

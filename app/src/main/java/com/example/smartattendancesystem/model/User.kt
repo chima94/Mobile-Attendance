@@ -8,4 +8,5 @@ data class User(
     var imageUri : String = "",
     var password : String = "",
     var userType : String = "",
+    var school : String = ""
 )

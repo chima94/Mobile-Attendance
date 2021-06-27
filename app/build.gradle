@@ -120,6 +120,7 @@ dependencies {
     implementation "com.google.dagger:hilt-android:$hiltVersion"
     kapt "com.google.dagger:hilt-android-compiler:$hiltVersion"
     implementation "androidx.hilt:hilt-lifecycle-viewmodel:$hiltAndroidXVersion"
+    implementation "androidx.hilt:hilt-navigation-compose:1.0.0-alpha02"
 
     //navigation
     implementation "androidx.navigation:navigation-fragment-ktx:2.3.5"

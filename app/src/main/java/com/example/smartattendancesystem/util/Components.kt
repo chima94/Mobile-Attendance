@@ -45,7 +45,6 @@ fun SignInSignUpTopAppBar(topAppBarText : String, onBackPressed : () -> Unit){
                 )
             }
         },
-
         actions = {
             Spacer(modifier = Modifier.width(68.dp))
         },

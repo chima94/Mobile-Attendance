@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.ViewModelProvider
 import com.example.smartattendancesystem.ui.BaseView
 import com.example.smartattendancesystem.ui.theme.AppThemeState
 import com.example.smartattendancesystem.ui.theme.SmartAttendanceSystemTheme
@@ -21,9 +22,11 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    private lateinit var viewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        //WindowCompat.setDecorFitsSystemWindows(window, false)
+        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
         setContent {
             val systemUIController =  SystemUIController(window)
             val appThemeState = AppThemeState()
