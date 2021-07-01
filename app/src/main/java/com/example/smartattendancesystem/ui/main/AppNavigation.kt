@@ -1,17 +1,21 @@
 package com.example.smartattendancesystem.ui.main
 
+import android.os.Parcelable
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
+import androidx.compose.ui.window.Dialog
+import androidx.navigation.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navigation
+import androidx.navigation.compose.navArgument
+import com.example.smartattendancesystem.model.User
 import com.example.smartattendancesystem.ui.main.attendance.Attendance
+import com.example.smartattendancesystem.ui.main.camera.CameraScreen
 import com.example.smartattendancesystem.ui.main.history.History
 import com.example.smartattendancesystem.ui.main.profile.Profile
 import com.example.smartattendancesystem.ui.main.update.UpdateScreen
+import com.google.gson.Gson
+import java.util.ArrayList
 
 internal sealed class Screen(val route : String){
     object Attendance : Screen("attendanceroot")
@@ -25,12 +29,15 @@ private sealed class LeafScreen(val route : String){
     object Profile : LeafScreen("profile")
 
     object Update : LeafScreen("update")
+    object Camera : LeafScreen("camera/{user}"){
+        fun createRoute(userData : String) : String = "camera/${userData}"
+    }
 }
 
 
 @Composable
 internal fun AppNavigation(
-    navController : NavHostController
+    navController: NavHostController
 ){
     NavHost(navController = navController, startDestination = Screen.Attendance.route ){
         addAttendanceTopLevel(navController)
@@ -42,7 +49,7 @@ internal fun AppNavigation(
 
 
 private fun NavGraphBuilder.addAttendanceTopLevel(
-    navController: NavController
+    navController: NavController,
 ){
     navigation(
         route = Screen.Attendance.route,
@@ -50,6 +57,7 @@ private fun NavGraphBuilder.addAttendanceTopLevel(
     ){
         addAttendance(navController)
         addUpdate(navController)
+        addCamera(navController)
     }
 }
 
@@ -102,8 +110,41 @@ private fun NavGraphBuilder.addProfile(navController: NavController){
 
 private fun NavGraphBuilder.addUpdate(navController: NavController){
     composable(LeafScreen.Update.route){
-        UpdateScreen(onNavigateBack = {
-            navController.popBackStack()
-        })
+        UpdateScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+           onVerifyError = {
+               Dialog(onDismissRequest = { navController.popBackStack() }) {
+                   Text(
+                       text = "A user with the same Id is already registered",
+                   )
+               }
+           },
+            camera = {school, userId ->
+                val gson = Gson()
+                navController.navigate(LeafScreen.Camera.createRoute(gson.toJson(
+                    User(userIdNum = userId, school = school)
+                )))
+            }
+        )
+    }
+}
+
+
+private fun NavGraphBuilder.addCamera(navController: NavController){
+    composable(
+        LeafScreen.Camera.route,
+        arguments = listOf(
+            navArgument("list"){type = NavType.StringType}
+        ),
+
+    ){
+
+        CameraScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            }
+        )
     }
 }

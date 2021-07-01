@@ -50,6 +50,9 @@ class AuthRepository(
             .catch { emit(LoginState.Error(it.localizedMessage!!)) }
 
 
+    fun verifyUserIdNum(userIdNum : String) : Flow<List<User>> =
+        authManager.verifyUserIdNumber(userIdNum)
+
     fun logout(){
         authManager.logout()
     }

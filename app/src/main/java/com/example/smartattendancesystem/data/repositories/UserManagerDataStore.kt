@@ -21,6 +21,7 @@ class UserManagerDataStore(val context: Context) {
         val USER_ID_NUM = preferencesKey<String>("USER_ID_NUM")
         val USER_TYPE = preferencesKey<String>("USER_TYPE")
         val USER_IMAGE_URI = preferencesKey<String>("USER_IMAGE_URI")
+        val SCHOOL = preferencesKey<String>("SCHOOL")
     }
 
     suspend fun storeUserData(user: User){
@@ -49,6 +50,7 @@ class UserManagerDataStore(val context: Context) {
             val userIdNum = preferences[USER_ID_NUM] ?: ""
             val userType  = preferences[USER_TYPE] ?: ""
             val imageUri = preferences[USER_IMAGE_URI] ?: ""
+            val school = preferences[SCHOOL] ?: ""
 
             User(
                 email = email,
@@ -56,7 +58,8 @@ class UserManagerDataStore(val context: Context) {
                 userId = userId,
                 userIdNum = userIdNum,
                 userType = userType,
-                imageUri = imageUri
+                imageUri = imageUri,
+                school = school
             )
         }
 

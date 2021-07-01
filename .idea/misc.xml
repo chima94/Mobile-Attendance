@@ -3,7 +3,12 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/PC/AndroidStudioProjects/SmartAttendanceSystem/app/src/main/res/drawable/ic_baseline_image_24.xml" value="0.240625" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/SmartAttendanceSystem/app/src/main/res/layout/activity_camera_activty.xml" value="0.19655797101449277" />
         <entry key="..\:/Users/PC/AndroidStudioProjects/SmartAttendanceSystem/app/src/main/res/layout/activity_intro.xml" value="0.14402173913043478" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/SmartAttendanceSystem/app/src/main/res/layout/cam_compose.xml" value="0.18568840579710144" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/SmartAttendanceSystem/app/src/main/res/layout/ic_baseline_image_24.xml" value="0.1897644927536232" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/SmartAttendanceSystem/app/src/main/res/layout/image_edit_dialog.xml" value="0.1897644927536232" />
       </map>
     </option>
   </component>

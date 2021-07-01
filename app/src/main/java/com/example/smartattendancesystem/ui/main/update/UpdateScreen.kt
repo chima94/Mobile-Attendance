@@ -13,17 +13,21 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.smartattendancesystem.ui.intro.EditTextState
 import com.example.smartattendancesystem.ui.intro.TextFieldState
 import com.example.smartattendancesystem.ui.intro.isNameValid
 import com.example.smartattendancesystem.ui.intro.nameValidationError
-import com.example.smartattendancesystem.util.SignInSignUpScreen
-import com.example.smartattendancesystem.util.SignInSignUpTopAppBar
-import com.example.smartattendancesystem.util.TextFieldError
+import com.example.smartattendancesystem.util.*
 
 
 @Composable
-fun UpdateScreen(onNavigateBack : () -> Unit){
+fun UpdateScreen(
+    onNavigateBack: () -> Unit,
+    onVerifyError: @Composable () -> Unit,
+    camera: (String, String) -> Unit
+
+){
     val school = remember{ mutableStateOf("")}
     val isOpen = remember{ mutableStateOf(false)}
     val userId = remember{ EditTextState(
@@ -31,6 +35,28 @@ fun UpdateScreen(onNavigateBack : () -> Unit){
         errorFor = { nameValidationError(it) }
     )
     }
+
+    val viewModel : UpdateViewModel = hiltViewModel()
+    val btn_click = remember { mutableStateOf(false)}
+    val viewState by rememberFlowWithLifecycle(flow = viewModel.state)
+        .collectAsState(initial = UpdateState.Nothing)
+
+    when(viewState){
+        UpdateState.Loading ->{
+
+        }
+        is UpdateState.Verify ->{
+            if((viewState as UpdateState.Verify).isVerified){
+                btn_click.value = false
+                viewModel.InitializeState()
+                camera(school.value, userId.text)
+            }else{
+                btn_click.value = false
+            }
+        }
+    }
+
+
 
     Scaffold(
         topBar = {
@@ -45,8 +71,16 @@ fun UpdateScreen(onNavigateBack : () -> Unit){
                     UpdateScreenContent(
                         userId,
                         school,
-                        isOpen
-                    )
+                        isOpen,
+                        btn_click
+                    ){action ->
+                        when(action){
+                            is UpdateAction.Update ->{
+                                btn_click.value = true
+                                viewModel.update(action.userId, action.school)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -58,7 +92,9 @@ fun UpdateScreen(onNavigateBack : () -> Unit){
 private fun UpdateScreenContent(
     userId: EditTextState,
     school: MutableState<String>,
-    isOpen: MutableState<Boolean>
+    isOpen: MutableState<Boolean>,
+    btn_click : MutableState<Boolean>,
+    onClick: (UpdateAction) -> Unit
 ) {
 
 
@@ -78,16 +114,19 @@ private fun UpdateScreenContent(
     Spacer(modifier = Modifier.height(16.dp))
 
     Button(
-        onClick = {},
+        onClick = {onClick(UpdateAction.Update(userId.text, school.value))},
         modifier = Modifier
             .fillMaxWidth()
             .padding(12.dp),
         shape = RoundedCornerShape(12.dp),
         elevation = ButtonDefaults.elevation(),
-        enabled = userId.isValid && school.value != ""
+        enabled = userId.isValid && school.value != "" && !btn_click.value
 
     ){
         Text(text = "Take Photo")
+    }
+    if(btn_click.value){
+        ProgressBar()
     }
 }
 
@@ -145,7 +184,7 @@ private fun SchoolSelection(school: MutableState<String>, isOpen: MutableState<B
             OutlinedTextField(
                 value = school.value,
                 onValueChange = {school.value = it},
-                label = {Text(text = "School")},
+                label = {Text(text = "Select School")},
                 modifier = Modifier.fillMaxWidth()
             )
             DropDownList(

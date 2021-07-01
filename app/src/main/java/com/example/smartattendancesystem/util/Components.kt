@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -251,26 +252,21 @@ fun ProgressBar(){
     }
 }
 
+
 @Composable
-fun SnackBarText(text : String){
-
-    Snackbar (
-        backgroundColor = Color.Black,
-        action = {
-            Text(
-                text = "HIDE",
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clickable {
-
-                    },
-                style = androidx.compose.ui.text.TextStyle(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colors.primary
-                )
+fun DefaultSnackbar(
+    snackbarHostState: SnackbarHostState,
+    modifier: Modifier,
+    onDismiss : () -> Unit
+){
+    SnackbarHost(
+        hostState = snackbarHostState,
+        snackbar = {data ->
+            Snackbar(
+                modifier = Modifier.padding(16.dp),
+                snackbarData = data,
             )
-        }
-    ){
-        Text(text = "Jetpack Compose Rocks")
-    }
+        },
+        modifier = modifier
+    )
 }

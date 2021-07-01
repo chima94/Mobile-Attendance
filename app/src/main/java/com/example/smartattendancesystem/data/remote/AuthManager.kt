@@ -16,6 +16,7 @@ object AuthManager {
 
     private val auth : FirebaseAuth by lazy { FirebaseAuth.getInstance() }
     private val db: FirebaseFirestore by lazy { FirebaseFirestore.getInstance()}
+    private val userRef = db.collection("User")
 
     val user = auth.currentUser?.uid
 
@@ -28,7 +29,6 @@ object AuthManager {
     }
 
     suspend fun saveUser(userData : User){
-        val userRef = db.collection("User")
         userRef.document(userData.userId).set(userData).await()
     }
 
@@ -41,10 +41,16 @@ object AuthManager {
 
 
     suspend fun getUser(userId : String) : User?{
-        val userRef = db.collection("User")
         val user = userRef.document(userId).get().await().toObject(User::class.java)
         return user
     }
+
+    fun verifyUserIdNumber(userIdNum : String) : Flow<List<User>> = flow {
+        val user = userRef.whereEqualTo("userIdNum", userIdNum).get().await()
+            .toObjects(User::class.java)
+        emit(user)
+    }
+
 
      fun logout(){
         auth.signOut()

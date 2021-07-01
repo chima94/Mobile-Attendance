@@ -1,20 +1,12 @@
 package com.example.smartattendancesystem.ui.main
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
 import com.example.smartattendancesystem.ui.BaseView
 import com.example.smartattendancesystem.ui.theme.AppThemeState
-import com.example.smartattendancesystem.ui.theme.SmartAttendanceSystemTheme
 import com.example.smartattendancesystem.ui.theme.SystemUIController
 import com.google.accompanist.insets.ProvideWindowInsets
 import dagger.hilt.android.AndroidEntryPoint
@@ -22,11 +14,9 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private lateinit var viewModel: MainViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //WindowCompat.setDecorFitsSystemWindows(window, false)
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
         setContent {
             val systemUIController =  SystemUIController(window)
             val appThemeState = AppThemeState()
@@ -38,6 +28,7 @@ class MainActivity : ComponentActivity() {
 
         }
     }
+
 }
 
 
