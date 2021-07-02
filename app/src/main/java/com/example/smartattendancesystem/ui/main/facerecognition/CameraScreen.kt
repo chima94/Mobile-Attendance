@@ -1,7 +1,7 @@
-package com.example.smartattendancesystem.ui.main.camera
+package com.example.smartattendancesystem.ui.main.facerecognition
 
 import android.annotation.SuppressLint
-import android.app.Activity
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.RectF
@@ -17,10 +17,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,34 +28,57 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.LifecycleOwner
 import com.example.smartattendancesystem.R
-import com.example.smartattendancesystem.ui.main.camera.util.BitmapUtil
+import com.example.smartattendancesystem.ui.main.facerecognition.util.BitmapUtil
 import com.example.smartattendancesystem.ui.theme.typography
+import com.example.smartattendancesystem.util.ProgressBar
 import com.example.smartattendancesystem.util.SignInSignUpTopAppBar
+import com.example.smartattendancesystem.util.rememberFlowWithLifecycle
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetector
 import com.google.mlkit.vision.face.FaceDetectorOptions
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
 
+@ExperimentalCoroutinesApi
 @Composable
 fun CameraScreen(
-    onNavigateBack : () -> Unit
+    onNavigateBack : () -> Unit,
+    onCompleted : () -> Unit
 ){
 
+    val lifeCycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
     val viewModel : CameraViewModel = hiltViewModel()
     val takePicture = remember { mutableStateOf(false)}
     val dialogState = remember{ mutableStateOf(DialogState(showDialog = false))}
+    val isUploading = remember{ mutableStateOf(false)}
+    val viewState by rememberFlowWithLifecycle(flow = viewModel.uiState)
+        .collectAsState(initial = CameraState.Nothing)
+
+    when(viewState){
+        CameraState.Loading ->{
+            isUploading.value = true
+        }
+        is CameraState.Success ->{
+            isUploading.value = false
+            onCompleted()
+        }
+        CameraState.Nothing->{}
+    }
 
 
     if(dialogState.value.showDialog){
         ShowDialog(
             dialogState.value.bitmap!!,
             onOkay = {
-
+                viewModel.uploadImage(dialogState.value.bitmap!!)
+                dialogState.value = DialogState(false)
             },
             onDismiss = {
                 dialogState.value = DialogState(false)
@@ -77,16 +97,20 @@ fun CameraScreen(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                CameraPreview(takePicture, viewModel.options){bitmap ->
-                    dialogState.value = DialogState(true, bitmap)
+                CameraPreview(takePicture, viewModel.options, context, lifeCycleOwner){bitmap ->
+                    dialogState.value = DialogState(showDialog = true, bitmap = bitmap)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = {
                         takePicture.value = true
-                    }
+                    },
+                    enabled = !isUploading.value
                 ) {
                     Text(text = "Take picture")
+                }
+                if(isUploading.value){
+                    ProgressBar()
                 }
             }
         }
@@ -139,14 +163,17 @@ fun ShowDialog(
 fun CameraPreview(
     takePicture: MutableState<Boolean>,
     options: FaceDetectorOptions,
-    onCaptureImage : (Bitmap) -> Unit
+    context : Context,
+    lifeCycleOwner : LifecycleOwner,
+    onCaptureImage : (Bitmap) -> Unit,
+
 ) {
-    val lifeCycleOwner = LocalLifecycleOwner.current
-    val context = LocalContext.current
+
 
     val cameraProviderFuture = remember{ProcessCameraProvider.getInstance(context)}
     val cameraExecutor = remember{ Executors.newSingleThreadExecutor()}
     val lensFacing = remember{CameraSelector.LENS_FACING_FRONT}
+    val cameraSelector = remember{CameraSelector.Builder().requireLensFacing(lensFacing).build()}
 
     val previewView = remember{
         PreviewView(context).apply {
@@ -172,7 +199,6 @@ fun CameraPreview(
                     it.setAnalyzer(cameraExecutor, FaceImageDetectorAnalyzer(takePicture, options, onCaptureImage))
                 }
 
-            val cameraSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
 
             try{
                 cameraProvider.unbindAll()
@@ -199,6 +225,7 @@ private class FaceImageDetectorAnalyzer(
 
     private var bitmap : Bitmap? = null
     private var detector : FaceDetector? = null
+
 
     init {
         detector = FaceDetection.getClient(options)
@@ -244,17 +271,7 @@ private class FaceImageDetectorAnalyzer(
 }
 
 
-private fun getImageUri(activity : Activity, bitmap: Bitmap) : Uri {
-    val bytes = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
-    val path = MediaStore.Images.Media.insertImage(
-        activity.contentResolver,
-        bitmap,
-        "title",
-        null
-    )
-    return Uri.parse(path.toString())
-}
+
 
 
 

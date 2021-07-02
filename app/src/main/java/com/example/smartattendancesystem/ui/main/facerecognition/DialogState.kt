@@ -1,4 +1,4 @@
-package com.example.smartattendancesystem.ui.main.camera
+package com.example.smartattendancesystem.ui.main.facerecognition
 
 import android.graphics.Bitmap
 

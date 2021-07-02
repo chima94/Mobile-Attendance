@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.lifecycle.ViewModelProvider
 import com.example.smartattendancesystem.ui.BaseView
 import com.example.smartattendancesystem.ui.theme.AppThemeState
 import com.example.smartattendancesystem.ui.theme.SystemUIController

@@ -1,4 +1,4 @@
-package com.example.smartattendancesystem.ui.main.camera.util;
+package com.example.smartattendancesystem.ui.main.facerecognition.util;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -12,6 +12,8 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.camera.core.ExperimentalGetImage;
 import androidx.camera.core.ImageProxy;
+
+
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;

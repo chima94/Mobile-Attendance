@@ -1,6 +1,5 @@
 package com.example.smartattendancesystem.ui.main
 
-import android.os.Parcelable
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.Dialog
@@ -10,12 +9,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navArgument
 import com.example.smartattendancesystem.model.User
 import com.example.smartattendancesystem.ui.main.attendance.Attendance
-import com.example.smartattendancesystem.ui.main.camera.CameraScreen
+import com.example.smartattendancesystem.ui.main.facerecognition.CameraScreen
 import com.example.smartattendancesystem.ui.main.history.History
 import com.example.smartattendancesystem.ui.main.profile.Profile
 import com.example.smartattendancesystem.ui.main.update.UpdateScreen
 import com.google.gson.Gson
-import java.util.ArrayList
 
 internal sealed class Screen(val route : String){
     object Attendance : Screen("attendanceroot")
@@ -49,7 +47,7 @@ internal fun AppNavigation(
 
 
 private fun NavGraphBuilder.addAttendanceTopLevel(
-    navController: NavController,
+    navController: NavController
 ){
     navigation(
         route = Screen.Attendance.route,
@@ -108,7 +106,9 @@ private fun NavGraphBuilder.addProfile(navController: NavController){
 }
 
 
-private fun NavGraphBuilder.addUpdate(navController: NavController){
+private fun NavGraphBuilder.addUpdate(
+    navController: NavController,
+){
     composable(LeafScreen.Update.route){
         UpdateScreen(
             onNavigateBack = {
@@ -131,7 +131,6 @@ private fun NavGraphBuilder.addUpdate(navController: NavController){
     }
 }
 
-
 private fun NavGraphBuilder.addCamera(navController: NavController){
     composable(
         LeafScreen.Camera.route,
@@ -139,12 +138,17 @@ private fun NavGraphBuilder.addCamera(navController: NavController){
             navArgument("list"){type = NavType.StringType}
         ),
 
-    ){
+        ){
 
         CameraScreen(
             onNavigateBack = {
                 navController.popBackStack()
+            },
+            onCompleted = {
+                navController.popBackStack(LeafScreen.Update.route, true)
             }
         )
     }
 }
+
+

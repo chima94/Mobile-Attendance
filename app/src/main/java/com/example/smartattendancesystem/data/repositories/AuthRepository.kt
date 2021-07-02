@@ -1,11 +1,15 @@
 package com.example.smartattendancesystem.data.repositories
 
+import android.net.Uri
 import com.example.smartattendancesystem.data.remote.AuthManager
 import com.example.smartattendancesystem.model.User
 import com.example.smartattendancesystem.ui.intro.login.LoginState
 import com.example.smartattendancesystem.ui.intro.register.RegisterAction
 import com.example.smartattendancesystem.ui.intro.register.RegisterDataState
+import com.example.smartattendancesystem.ui.main.facerecognition.CameraState
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
@@ -18,6 +22,8 @@ class AuthRepository(
 
     val userData : Flow<User> = userManagerDataStore.userData
     val signInUser  = authManager.user
+
+
 
     fun register(userData: User) : Flow<RegisterDataState> =
         authManager.Register(userData)
@@ -52,6 +58,22 @@ class AuthRepository(
 
     fun verifyUserIdNum(userIdNum : String) : Flow<List<User>> =
         authManager.verifyUserIdNumber(userIdNum)
+
+
+
+    @ExperimentalCoroutinesApi
+    fun uploadImage(imageUri : Uri, user: User) : Flow<CameraState> =
+        authManager.uploadImage(imageUri).onEach { downloadUri ->
+            if(downloadUri is CameraState.Success){
+                user.imageUri = downloadUri.imageUri
+                storeData(user)
+            }
+
+        }
+            .flowOn(defaultDispatcher)
+            .catch { emit(CameraState.Error(it.localizedMessage!!)) }
+
+
 
     fun logout(){
         authManager.logout()

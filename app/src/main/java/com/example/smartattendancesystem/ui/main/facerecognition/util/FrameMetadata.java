@@ -1,4 +1,4 @@
-package com.example.smartattendancesystem.ui.main.camera.util;
+package com.example.smartattendancesystem.ui.main.facerecognition.util;
 
 public class FrameMetadata {
 

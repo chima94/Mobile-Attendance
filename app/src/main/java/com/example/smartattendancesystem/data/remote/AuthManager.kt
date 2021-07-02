@@ -1,12 +1,18 @@
 package com.example.smartattendancesystem.data.remote
 
+import android.net.Uri
 import com.example.smartattendancesystem.model.User
 import com.example.smartattendancesystem.ui.intro.login.LoginState
 import com.example.smartattendancesystem.ui.intro.register.RegisterDataState
+import com.example.smartattendancesystem.ui.main.facerecognition.CameraState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
@@ -17,6 +23,7 @@ object AuthManager {
     private val auth : FirebaseAuth by lazy { FirebaseAuth.getInstance() }
     private val db: FirebaseFirestore by lazy { FirebaseFirestore.getInstance()}
     private val userRef = db.collection("User")
+    private val storageRef = FirebaseStorage.getInstance().reference
 
     val user = auth.currentUser?.uid
 
@@ -45,10 +52,32 @@ object AuthManager {
         return user
     }
 
+
     fun verifyUserIdNumber(userIdNum : String) : Flow<List<User>> = flow {
         val user = userRef.whereEqualTo("userIdNum", userIdNum).get().await()
             .toObjects(User::class.java)
         emit(user)
+    }
+
+
+
+    @ExperimentalCoroutinesApi
+    fun uploadImage(imageUri : Uri) : Flow<CameraState> = callbackFlow {
+        trySend(CameraState.Loading)
+        val imageRef =
+            storageRef.child("userImages/"+FirebaseAuth.getInstance().currentUser!!.uid
+            +"/"+FirebaseAuth.getInstance().currentUser!!.uid+"."+"jpeg")
+
+        val snapshot = imageRef.putFile(imageUri).addOnSuccessListener {
+            imageRef.downloadUrl.addOnCompleteListener {
+                trySend(CameraState.Success(it.result.toString()))
+            }
+        }
+            .addOnFailureListener{
+                trySend(CameraState.Error(it.localizedMessage!!))
+            }
+            awaitClose { snapshot.cancel() }
+
     }
 
 
