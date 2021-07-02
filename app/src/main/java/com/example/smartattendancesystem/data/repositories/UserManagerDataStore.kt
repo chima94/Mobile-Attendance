@@ -32,6 +32,7 @@ class UserManagerDataStore(val context: Context) {
             it[USER_ID_NUM] = user.userIdNum
             it[USER_TYPE] = user.userType
             it[USER_IMAGE_URI] = user.imageUri
+            it[SCHOOL] = user.school
         }
     }
 

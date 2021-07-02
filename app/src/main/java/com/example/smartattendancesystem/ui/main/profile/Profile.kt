@@ -1,6 +1,5 @@
 package com.example.smartattendancesystem.ui.main.profile
 
-import android.widget.Space
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,30 +7,40 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Update
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.smartattendancesystem.R
+import com.example.smartattendancesystem.model.User
+import com.example.smartattendancesystem.ui.main.update.UpdateState
 import com.example.smartattendancesystem.ui.theme.AppBarAlphas
-import com.google.accompanist.insets.LocalWindowInsets
-import com.google.accompanist.insets.rememberInsetsPaddingValues
+import com.example.smartattendancesystem.util.LoadImage
+import com.example.smartattendancesystem.util.rememberFlowWithLifecycle
+import timber.log.Timber
 
 
 @Composable
 fun Profile(){
+
+    val viewModel : ProfileViewModel = hiltViewModel()
+    val viewState by rememberFlowWithLifecycle(flow = viewModel.user)
+        .collectAsState(initial = User())
+
     Scaffold(
         topBar = {ProfileTopAppBar(modifier = Modifier.fillMaxWidth())},
         modifier = Modifier.fillMaxSize(),
         content = {
             ProfileScreen(modifier = Modifier.fillMaxWidth()) {
-                ProfileContent()
+                ProfileContent(viewState)
             }
         }
     )
@@ -41,18 +50,19 @@ fun Profile(){
 
 
 @Composable
-private fun ProfileContent(){
+private fun ProfileContent(user: User) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ProfileImage()
+        ProfileImage(user.imageUri)
         Spacer(modifier = Modifier.height(30.dp))
-        ProfileInputText(label = "Email")
+        ProfileInputText(label = "Email", value = user.email)
         Spacer(modifier = Modifier.height(16.dp))
-        ProfileInputText(label = "Full Name")
+        ProfileInputText(label = "Full Name", value = user.name)
         Spacer(modifier = Modifier.height(16.dp))
-        ProfileInputText(label = "School")
+        ProfileInputText(label = "School", user.school)
+
     }
 
 }
@@ -61,23 +71,27 @@ private fun ProfileContent(){
 
 
 @Composable
-private fun ProfileImage(){
-    Image(
-        painter = painterResource(id = R.drawable.p1),
+private fun ProfileImage(imageUri : String){
+
+    val image = LoadImage(url = imageUri)
+    image.value?.let {
+        Image(
+        bitmap = it.asImageBitmap(),
         contentScale = ContentScale.Crop,
         contentDescription = null,
         modifier = Modifier
             .size(100.dp)
             .clip(CircleShape),
     )
+    }
 }
 
 
 
 @Composable
-private fun ProfileInputText(label : String){
+private fun ProfileInputText(label : String, value : String){
     TextField(
-        value = "Name",
+        value = value,
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth(),
