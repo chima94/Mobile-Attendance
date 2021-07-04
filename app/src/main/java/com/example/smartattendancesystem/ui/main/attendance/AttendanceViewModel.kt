@@ -2,24 +2,28 @@ package com.example.smartattendancesystem.ui.main.attendance
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.smartattendancesystem.data.repositories.AttendanceRepository
 import com.example.smartattendancesystem.data.repositories.AuthRepository
 import com.example.smartattendancesystem.model.User
+import com.example.smartattendancesystem.model.local.ClassModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class AttendanceViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val attendanceRepository: AttendanceRepository
 ) : ViewModel(){
 
     private var _userData = MutableStateFlow(User())
     val userData : StateFlow<User> = _userData
+
+
+    val classes = attendanceRepository.classes
+        .map { it.filter { classModel -> isCurrentUser(classModel.userId, _userData.value.userId) } }
 
     init {
         viewModelScope.launch {
@@ -27,6 +31,22 @@ class AttendanceViewModel @Inject constructor(
                 _userData.value = user
             }
         }
+    }
+
+
+    fun insertClass(courseTitle : String){
+       viewModelScope.launch {
+           attendanceRepository.insertClass(ClassModel(
+               courseTitle = courseTitle,
+               classState = false,
+               userId = _userData.value.userId
+           ))
+       }
+    }
+
+
+    private fun isCurrentUser(userId : String, currentUserId : String) : Boolean{
+        return userId == currentUserId
     }
 
 }

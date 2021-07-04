@@ -18,6 +18,7 @@
         android:theme="@style/Theme.SmartAttendanceSystem">
         <activity
             android:name=".ui.intro.IntroActivity"
+            android:screenOrientation="portrait"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
