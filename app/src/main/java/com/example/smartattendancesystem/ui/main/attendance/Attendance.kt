@@ -12,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,8 +23,6 @@ import com.example.smartattendancesystem.ui.theme.gradientGreen
 import com.example.smartattendancesystem.ui.theme.typography
 import com.example.smartattendancesystem.util.horizontalGradientBackground
 import com.example.smartattendancesystem.util.rememberFlowWithLifecycle
-import com.google.accompanist.insets.navigationBarsPadding
-import com.google.accompanist.insets.statusBarsPadding
 import timber.log.Timber
 
 
@@ -38,6 +35,7 @@ fun Attendance(verify : () -> Unit){
     val courseTitle = remember{ mutableStateOf("")}
     val classes = viewModel.classes.collectAsState(initial = emptyList())
 
+
     Scaffold(
         topBar = {
             if(viewState.imageUri != ""){
@@ -45,21 +43,23 @@ fun Attendance(verify : () -> Unit){
             }
         },
         floatingActionButton = {
-            val rippleExplode = remember{ mutableStateOf(false)}
-            FloatingActionButton(rippleExplode = rippleExplode)
-            if(rippleExplode.value){
-                AttendanceDialog(
-                    onConfirm = {
-                        if(courseTitle.value != ""){
-                            viewModel.insertClass(courseTitle.value)
-                        }
-                        rippleExplode.value = false
-                    },
-                    onDismiss = {
-                        rippleExplode.value = false
-                    },
-                    value = courseTitle
-                )
+            if(viewState.imageUri != "" && viewState.userType == "Lecturer"){
+                val rippleExplode = remember{ mutableStateOf(false)}
+                FloatingActionButton(rippleExplode = rippleExplode)
+                if(rippleExplode.value){
+                    AttendanceDialog(
+                        onConfirm = {
+                            if(courseTitle.value != ""){
+                                viewModel.insertClass(courseTitle.value)
+                            }
+                            rippleExplode.value = false
+                        },
+                        onDismiss = {
+                            rippleExplode.value = false
+                        },
+                        value = courseTitle
+                    )
+                }
             }
         }
     ) {
@@ -67,7 +67,11 @@ fun Attendance(verify : () -> Unit){
             if(viewState.imageUri == ""){
                 VerifyAccount(verify, viewState.name)
             }
-            AttendanceContent(classModels = classes.value)
+            if(viewState.imageUri != "" && viewState.userType == "Lecturer"){
+                LecturerContent(classModels = classes.value, viewModel = viewModel)
+            }
+            Spacer(modifier = Modifier.height(50.dp))
+            NoOngoingClassMessage(classModels = classes.value)
         }
     }
 }
@@ -76,18 +80,30 @@ fun Attendance(verify : () -> Unit){
 
 
 @Composable
-fun AttendanceContent(classModels: List<ClassModel>){
+fun LecturerContent(classModels: List<ClassModel>, viewModel: AttendanceViewModel){
     LazyColumn {
       items(items = classModels){classModel ->
-          ClassListRow(classModel = classModel)
+          ClassListRow(
+              classModel = classModel,
+              onClassChange = {state ->
+                  if (viewModel.classState.value > 0 && state){
+                      Timber.i("class is ongoing....")
+                  }else{
+                      viewModel.classState.value = 0
+                      viewModel.updateClassState(state = state, id = classModel.id)
+                  }
+              }
+          )
       }
     }
 }
 
 
 
+
 @Composable
-fun ClassListRow(classModel : ClassModel){
+fun ClassListRow(classModel : ClassModel, onClassChange : (Boolean) -> Unit){
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -102,9 +118,9 @@ fun ClassListRow(classModel : ClassModel){
             modifier = Modifier.padding(horizontal = 4.dp)
         )
         Switch(
-            checked = false,
+            checked = classModel.classState,
             colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-            onCheckedChange = {  }
+            onCheckedChange = onClassChange
         )
     }
 }
@@ -178,6 +194,23 @@ private fun VerifyAccount(verify: () -> Unit, name: String){
 
 
 
+@Composable
+fun NoOngoingClassMessage(classModels: List<ClassModel>){
+    if(classModels.isEmpty()){
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "No Ongoing class at the moment",
+                style = MaterialTheme.typography.h6,
+                color = Color.LightGray
+            )
+        }
+    }
+    
+}
 
 @Composable
 private fun AttendanceTopBar(modifier: Modifier){

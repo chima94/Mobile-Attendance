@@ -1,5 +1,6 @@
 package com.example.smartattendancesystem.ui.main.attendance
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.smartattendancesystem.data.repositories.AttendanceRepository
@@ -21,9 +22,11 @@ class AttendanceViewModel @Inject constructor(
     private var _userData = MutableStateFlow(User())
     val userData : StateFlow<User> = _userData
 
+    val classState = mutableStateOf(0)
+
 
     val classes = attendanceRepository.classes
-        .map { it.filter { classModel -> isCurrentUser(classModel.userId, _userData.value.userId) } }
+        .map { it.filter { classModel -> isCurrentUser(classModel, _userData.value.userId) } }
 
     init {
         viewModelScope.launch {
@@ -45,8 +48,19 @@ class AttendanceViewModel @Inject constructor(
     }
 
 
-    private fun isCurrentUser(userId : String, currentUserId : String) : Boolean{
-        return userId == currentUserId
+    fun updateClassState(state : Boolean, id : String){
+        viewModelScope.launch {
+            attendanceRepository.updateClassState(state, id)
+        }
+    }
+
+
+
+    private fun isCurrentUser(classModel: ClassModel, currentUserId : String) : Boolean{
+        if(classState.value == 0 && classModel.classState){
+            classState.value ++
+        }
+        return classModel.userId == currentUserId
     }
 
 }

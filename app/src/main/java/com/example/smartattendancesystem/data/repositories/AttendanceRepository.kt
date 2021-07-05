@@ -7,11 +7,15 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 
 class AttendanceRepository constructor(
-    val attendanceDao: AttendanceDao
+    private val attendanceDao: AttendanceDao
 ) {
     val classes : Flow<List<ClassModel>> = attendanceDao.observeClasses()
 
     suspend fun insertClass(classModel: ClassModel){
         attendanceDao.insertClass(classModel)
+    }
+
+    suspend fun updateClassState(state : Boolean, id : String){
+        attendanceDao.updateClassState(state, id)
     }
 }

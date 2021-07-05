@@ -1,9 +1,6 @@
 package com.example.smartattendancesystem.data.local
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import com.example.smartattendancesystem.model.local.ClassModel
 import kotlinx.coroutines.flow.Flow
 
@@ -15,4 +12,7 @@ interface AttendanceDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertClass(classModel: ClassModel)
+
+    @Query("UPDATE classModel SET classState = :state WHERE entryId = :id")
+    suspend fun updateClassState(state : Boolean, id : String)
 }

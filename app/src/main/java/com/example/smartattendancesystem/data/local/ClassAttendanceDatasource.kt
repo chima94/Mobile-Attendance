@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 
 class ClassAttendanceDatasource internal constructor(
     private val attendanceDao: AttendanceDao,
@@ -14,5 +15,11 @@ class ClassAttendanceDatasource internal constructor(
 
     suspend fun insertClass(classModel: ClassModel){
         attendanceDao.insertClass(classModel = classModel)
+    }
+
+    suspend fun updateClassState(state : Boolean, id : String){
+        withContext(ioDispatcher){
+            attendanceDao.updateClassState(state, id)
+        }
     }
 }
