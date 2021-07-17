@@ -1,5 +1,13 @@
 package com.example.smartattendancesystem.ui.main.attendance
 
+import android.app.Activity
+import android.content.Context
+import android.content.IntentSender
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,31 +20,73 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.smartattendancesystem.data.repositories.LocationState
 import com.example.smartattendancesystem.model.User
 import com.example.smartattendancesystem.model.local.ClassModel
 import com.example.smartattendancesystem.ui.theme.gradientGreen
 import com.example.smartattendancesystem.ui.theme.typography
 import com.example.smartattendancesystem.util.horizontalGradientBackground
 import com.example.smartattendancesystem.util.rememberFlowWithLifecycle
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
 import timber.log.Timber
 
 
 @Composable
-fun Attendance(verify : () -> Unit){
-
+fun Attendance(
+    verify : () -> Unit,
+){
+    val context = LocalContext.current
+    val activity = context as Activity
     val viewModel : AttendanceViewModel = hiltViewModel()
     val viewState by rememberFlowWithLifecycle(flow = viewModel.userData)
         .collectAsState(initial = User())
+    val locationState by rememberFlowWithLifecycle(flow = viewModel.requestLocation)
+        .collectAsState(initial = LocationState(state = false))
     val courseTitle = remember{ mutableStateOf("")}
     val classes = viewModel.classes.collectAsState(initial = emptyList())
+    val snackbarHostState = remember{ SnackbarHostState() }
+
+      val laucher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()) {
+          if(it.resultCode < 0){
+
+          }else{
+              Timber.i("Please location is required")
+          }
+
+    }
+
+
+    
+    if(locationState.request) {
+        LaunchedEffect(snackbarHostState) {
+            val result = snackbarHostState.showSnackbar(
+                message = "Turn on your location",
+                actionLabel = "Turn on",
+                duration = SnackbarDuration.Indefinite
+            )
+            when(result){
+                SnackbarResult.ActionPerformed ->{
+                    viewModel.resetLocationState()
+                    checkLocationSetting(context = context, laucher)
+                }
+                SnackbarResult.Dismissed ->{}
+            }
+        }
+    }
 
 
     Scaffold(
+        scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState),
         topBar = {
             if(viewState.imageUri != ""){
                 AttendanceTopBar(modifier = Modifier.fillMaxWidth())
@@ -270,3 +320,37 @@ fun AttendanceDialog(
         }
     )
 }
+
+private fun checkLocationSetting(
+    context: Context,
+    laucher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>,
+){
+    val locationRequest = LocationRequest.create().apply {
+        priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+    }
+    val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+    val settingClient = LocationServices.getSettingsClient(context)
+    val locationSettingsResponseTask = settingClient.checkLocationSettings(builder.build())
+
+    locationSettingsResponseTask.addOnFailureListener{exception ->
+        if(exception is ResolvableApiException){
+            try {
+                // exception.startResolutionForResult(context as Activity, REQUEST_CHECK_SETTING)
+                val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
+                laucher.launch(intentSenderRequest)
+            }catch (sendEx : IntentSender.SendIntentException){
+                Timber.i("Error : $sendEx")
+            }
+        }
+    }
+
+    locationSettingsResponseTask.addOnCompleteListener {
+        if(it.isSuccessful){
+            Timber.i("Location on successfully.....")
+        }
+    }
+}
+
+
+
+val REQUEST_CHECK_SETTING = 100

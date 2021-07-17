@@ -26,7 +26,7 @@ buildscript {
         mavenLocal()
         google()
         mavenCentral()
-        jcenter()
+
 
         if (snapshot) {
             maven { url "https://androidx.dev/snapshots/builds/${snapshot} /artifacts/repository/" }

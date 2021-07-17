@@ -253,20 +253,7 @@ fun ProgressBar(){
 }
 
 
-@Composable
-fun DefaultSnackbar(
-    snackbarHostState: SnackbarHostState,
-    modifier: Modifier,
-    onDismiss : () -> Unit
-){
-    SnackbarHost(
-        hostState = snackbarHostState,
-        snackbar = {data ->
-            Snackbar(
-                modifier = Modifier.padding(16.dp),
-                snackbarData = data,
-            )
-        },
-        modifier = modifier
-    )
-}
+
+
+
+
