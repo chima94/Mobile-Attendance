@@ -33,10 +33,8 @@ import timber.log.Timber
 @AndroidEntryPoint
 class MainActivity :ComponentActivity() {
     private lateinit var viewModel : MainViewModel
-    private lateinit var fuseLocationProviderClient : FusedLocationProviderClient
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        fuseLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         setContent {
             viewModel = hiltViewModel()
             viewModel.locationState(isLocationEnabled())

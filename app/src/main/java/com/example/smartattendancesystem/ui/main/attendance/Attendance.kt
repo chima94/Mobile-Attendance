@@ -45,7 +45,6 @@ fun Attendance(
     verify : () -> Unit,
 ){
     val context = LocalContext.current
-    val activity = context as Activity
     val viewModel : AttendanceViewModel = hiltViewModel()
     val viewState by rememberFlowWithLifecycle(flow = viewModel.userData)
         .collectAsState(initial = User())
@@ -58,7 +57,7 @@ fun Attendance(
       val laucher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()) {
           if(it.resultCode < 0){
-
+              viewModel.resetLocationState(state = true)
           }else{
               Timber.i("Please location is required")
           }

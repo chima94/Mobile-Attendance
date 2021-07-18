@@ -87,8 +87,14 @@ class AttendanceViewModel @Inject constructor(
     }
 
 
-    fun resetLocationState(){
-        _requestLocation.value = LocationState(locationState, request = false)
+    fun resetLocationState(state: Boolean = false){
+        _requestLocation.value = LocationState(state = locationState, request = false)
+        if(state){
+            viewModelScope.launch {
+                _requestLocation.value = LocationState(state = !locationState, request = false)
+                attendanceRepository.saveLocationState(LocationState(state = !locationState, request = false))
+            }
+        }
     }
 
 }
