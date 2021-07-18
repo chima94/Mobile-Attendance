@@ -1,6 +1,5 @@
 package com.example.smartattendancesystem.ui.main.attendance
 
-import android.app.Activity
 import android.content.Context
 import android.content.IntentSender
 import androidx.activity.compose.ManagedActivityResultLauncher
@@ -53,6 +52,15 @@ fun Attendance(
     val courseTitle = remember{ mutableStateOf("")}
     val classes = viewModel.classes.collectAsState(initial = emptyList())
     val snackbarHostState = remember{ SnackbarHostState() }
+    val classOngoingMessage = remember{ mutableStateOf(false)}
+
+
+    if(classOngoingMessage.value){
+        LaunchedEffect(snackbarHostState){
+            snackbarHostState.showSnackbar(message = "Class is currently on going")
+            classOngoingMessage.value = !classOngoingMessage.value
+        }
+    }
 
       val laucher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()) {
@@ -117,7 +125,7 @@ fun Attendance(
                 VerifyAccount(verify, viewState.name)
             }
             if(viewState.imageUri != "" && viewState.userType == "Lecturer"){
-                LecturerContent(classModels = classes.value, viewModel = viewModel)
+                LecturerContent(classModels = classes.value, viewModel = viewModel, classOngoingMessage)
             }
             Spacer(modifier = Modifier.height(50.dp))
             NoOngoingClassMessage(classModels = classes.value)
@@ -129,14 +137,18 @@ fun Attendance(
 
 
 @Composable
-fun LecturerContent(classModels: List<ClassModel>, viewModel: AttendanceViewModel){
+fun LecturerContent(
+    classModels: List<ClassModel>,
+    viewModel: AttendanceViewModel,
+    classOngoingMsg: MutableState<Boolean>
+){
     LazyColumn {
       items(items = classModels){classModel ->
           ClassListRow(
               classModel = classModel,
               onClassChange = {state ->
                   if (viewModel.classState.value > 0 && state){
-                      Timber.i("class is ongoing....")
+                      classOngoingMsg.value = true
                   }else{
                       viewModel.classState.value = 0
                       viewModel.updateClassState(state = state, id = classModel.id)
