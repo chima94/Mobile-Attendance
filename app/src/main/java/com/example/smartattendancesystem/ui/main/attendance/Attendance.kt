@@ -30,6 +30,7 @@ import com.example.smartattendancesystem.model.User
 import com.example.smartattendancesystem.model.local.ClassModel
 import com.example.smartattendancesystem.ui.theme.gradientGreen
 import com.example.smartattendancesystem.ui.theme.typography
+import com.example.smartattendancesystem.util.ShowSnackbarMessage
 import com.example.smartattendancesystem.util.horizontalGradientBackground
 import com.example.smartattendancesystem.util.rememberFlowWithLifecycle
 import com.google.android.gms.common.api.ResolvableApiException
@@ -57,7 +58,9 @@ fun Attendance(
 
     if(classOngoingMessage.value){
         LaunchedEffect(snackbarHostState){
-            snackbarHostState.showSnackbar(message = "Class is currently on going")
+            snackbarHostState.showSnackbar(
+                message = "class currently ongoing",
+            )
             classOngoingMessage.value = !classOngoingMessage.value
         }
     }
@@ -66,8 +69,6 @@ fun Attendance(
         contract = ActivityResultContracts.StartIntentSenderForResult()) {
           if(it.resultCode < 0){
               viewModel.resetLocationState(state = true)
-          }else{
-              Timber.i("Please location is required")
           }
 
     }
@@ -363,5 +364,3 @@ private fun checkLocationSetting(
 }
 
 
-
-val REQUEST_CHECK_SETTING = 100

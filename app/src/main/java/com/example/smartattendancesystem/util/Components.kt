@@ -8,10 +8,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusModifier
@@ -253,7 +250,12 @@ fun ProgressBar(){
 }
 
 
-
+@Composable
+fun ShowSnackbarMessage(message : String, snackbarHostState: SnackbarHostState){
+    LaunchedEffect(snackbarHostState){
+        snackbarHostState.showSnackbar(message = message)
+    }
+}
 
 
 
