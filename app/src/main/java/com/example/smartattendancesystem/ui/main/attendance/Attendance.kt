@@ -29,6 +29,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.asFlow
 import com.example.smartattendancesystem.data.repositories.LocationState
+import com.example.smartattendancesystem.model.AttendanceModel
 import com.example.smartattendancesystem.model.User
 import com.example.smartattendancesystem.model.local.ClassModel
 import com.example.smartattendancesystem.services.TrackingService
@@ -53,6 +54,8 @@ fun Attendance(
     val viewModel : AttendanceViewModel = hiltViewModel()
     val viewState by rememberFlowWithLifecycle(flow = viewModel.userData)
         .collectAsState(initial = User())
+    val classes by rememberFlowWithLifecycle(flow = viewModel.classes)
+        .collectAsState(initial = emptyList())
     val locations = TrackingService.pathPoints.asFlow()
     val isTracking by TrackingService.tracking.observeAsState()
     val locationState by rememberFlowWithLifecycle(flow = viewModel.requestLocation)
@@ -71,7 +74,7 @@ fun Attendance(
        LaunchedEffect(locations){
            locations.collect {
                if(it.isNotEmpty() && it.last().isNotEmpty()){
-                   Timber.i("location : ${it.last().last()}")
+                   viewModel.setAttendance(it.last().last())
                }
            }
        }
@@ -115,6 +118,7 @@ fun Attendance(
 
     Attendance(
         viewState,
+        classes,
         viewModel,
         snackbarHostState,
         courseTitle,
@@ -129,13 +133,15 @@ fun Attendance(
 @Composable
 internal fun Attendance(
     viewState: User,
+    classes: List<AttendanceModel>,
     viewModel: AttendanceViewModel,
     snackbarHostState: SnackbarHostState,
     courseTitle: MutableState<String>,
     verify: () -> Unit,
     classOngoingMsg: MutableState<Boolean>,
 ){
-    val classes = viewModel.classes.collectAsState(initial = emptyList())
+    val courses = viewModel.courses.collectAsState(initial = emptyList())
+
 
     Scaffold(
         scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState),
@@ -170,10 +176,13 @@ internal fun Attendance(
                 VerifyAccount(verify, viewState.name)
             }
             if(viewState.imageUri != "" && viewState.userType == "Lecturer"){
-                LecturerContent(classModels = classes.value, viewModel = viewModel, classOngoingMsg)
+                LecturerContent(classModels = courses.value, viewModel = viewModel, classOngoingMsg)
+            }
+            if(viewState.imageUri != "" && viewState.userType == "Student"){
+                StudentContent(classes)
             }
             Spacer(modifier = Modifier.height(50.dp))
-            NoOngoingClassMessage(classModels = classes.value)
+            NoOngoingClassMessage(classModels = courses.value, classes)
         }
     }
 }
@@ -195,13 +204,48 @@ fun LecturerContent(
                       classOngoingMsg.value = true
                   }else{
                       viewModel.classState.value = 0
-                      viewModel.updateClassState(state = state, id = classModel.id)
+                      viewModel.updateClassState(state = state, classModel = classModel)
                   }
               }
           )
       }
     }
 }
+
+
+
+@Composable
+fun StudentContent(classes: List<AttendanceModel>) {
+
+    LazyColumn {
+        items(items = classes) { classData ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = classData.courseTitle,
+                    style = typography.h6.copy(fontSize = 14.sp),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+                Text(
+                    text = "2, Aug 2021",
+                    style = typography.h6.copy(fontSize = 14.sp),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+            }
+        }
+    }
+}
+
+
+
+
 
 
 
@@ -300,8 +344,8 @@ private fun VerifyAccount(verify: () -> Unit, name: String){
 
 
 @Composable
-fun NoOngoingClassMessage(classModels: List<ClassModel>){
-    if(classModels.isEmpty()){
+fun NoOngoingClassMessage(classModels: List<ClassModel>, classes: List<AttendanceModel>){
+    if(classModels.isEmpty() && classes.isEmpty()){
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
