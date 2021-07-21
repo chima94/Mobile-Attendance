@@ -1,6 +1,7 @@
 package com.example.smartattendancesystem.ui.main.attendance
 
 import android.content.Context
+import android.content.Intent
 import android.content.IntentSender
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -15,6 +16,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,18 +27,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.asFlow
 import com.example.smartattendancesystem.data.repositories.LocationState
 import com.example.smartattendancesystem.model.User
 import com.example.smartattendancesystem.model.local.ClassModel
+import com.example.smartattendancesystem.services.TrackingService
 import com.example.smartattendancesystem.ui.theme.gradientGreen
 import com.example.smartattendancesystem.ui.theme.typography
-import com.example.smartattendancesystem.util.ShowSnackbarMessage
+import com.example.smartattendancesystem.util.Constants
 import com.example.smartattendancesystem.util.horizontalGradientBackground
 import com.example.smartattendancesystem.util.rememberFlowWithLifecycle
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
+import kotlinx.coroutines.flow.collect
 import timber.log.Timber
 
 
@@ -48,13 +53,29 @@ fun Attendance(
     val viewModel : AttendanceViewModel = hiltViewModel()
     val viewState by rememberFlowWithLifecycle(flow = viewModel.userData)
         .collectAsState(initial = User())
+    val locations = TrackingService.pathPoints.asFlow()
+    val isTracking by TrackingService.tracking.observeAsState()
     val locationState by rememberFlowWithLifecycle(flow = viewModel.requestLocation)
         .collectAsState(initial = LocationState(state = false))
     val courseTitle = remember{ mutableStateOf("")}
-    val classes = viewModel.classes.collectAsState(initial = emptyList())
     val snackbarHostState = remember{ SnackbarHostState() }
     val classOngoingMessage = remember{ mutableStateOf(false)}
 
+    if(viewModel.startService.value){
+        sendServiceCommand(Constants.ACTION_START_OR_RESUME_SERVICE, context)
+    }else{
+        sendServiceCommand(Constants.ACTION_STOP_SERVICE, context)
+    }
+
+    if(isTracking == true){
+       LaunchedEffect(locations){
+           locations.collect {
+               if(it.isNotEmpty() && it.last().isNotEmpty()){
+                   Timber.i("location : ${it.last().last()}")
+               }
+           }
+       }
+    }
 
     if(classOngoingMessage.value){
         LaunchedEffect(snackbarHostState){
@@ -92,6 +113,29 @@ fun Attendance(
         }
     }
 
+    Attendance(
+        viewState,
+        viewModel,
+        snackbarHostState,
+        courseTitle,
+        verify,
+        classOngoingMessage,
+    )
+
+
+}
+
+
+@Composable
+internal fun Attendance(
+    viewState: User,
+    viewModel: AttendanceViewModel,
+    snackbarHostState: SnackbarHostState,
+    courseTitle: MutableState<String>,
+    verify: () -> Unit,
+    classOngoingMsg: MutableState<Boolean>,
+){
+    val classes = viewModel.classes.collectAsState(initial = emptyList())
 
     Scaffold(
         scaffoldState = rememberScaffoldState(snackbarHostState = snackbarHostState),
@@ -126,14 +170,13 @@ fun Attendance(
                 VerifyAccount(verify, viewState.name)
             }
             if(viewState.imageUri != "" && viewState.userType == "Lecturer"){
-                LecturerContent(classModels = classes.value, viewModel = viewModel, classOngoingMessage)
+                LecturerContent(classModels = classes.value, viewModel = viewModel, classOngoingMsg)
             }
             Spacer(modifier = Modifier.height(50.dp))
             NoOngoingClassMessage(classModels = classes.value)
         }
     }
 }
-
 
 
 
@@ -347,7 +390,6 @@ private fun checkLocationSetting(
     locationSettingsResponseTask.addOnFailureListener{exception ->
         if(exception is ResolvableApiException){
             try {
-                // exception.startResolutionForResult(context as Activity, REQUEST_CHECK_SETTING)
                 val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
                 laucher.launch(intentSenderRequest)
             }catch (sendEx : IntentSender.SendIntentException){
@@ -364,3 +406,8 @@ private fun checkLocationSetting(
 }
 
 
+private fun sendServiceCommand(action : String, context: Context) =
+    Intent(context, TrackingService::class.java).also {
+        it.action = action
+        context.startService(it)
+    }

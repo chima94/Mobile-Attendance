@@ -33,6 +33,8 @@ class AttendanceViewModel @Inject constructor(
     private var _requestLocation = MutableStateFlow(LocationState(locationState))
     val requestLocation : StateFlow<LocationState> = _requestLocation
 
+    val startService = mutableStateOf(false)
+
     init {
        userData()
         locationState()
@@ -71,6 +73,7 @@ class AttendanceViewModel @Inject constructor(
         viewModelScope.launch {
             if(locationState){
                 attendanceRepository.updateClassState(state, id)
+                startService.value = state
             }else{
                 _requestLocation.value = LocationState(locationState, request = true)
             }
