@@ -11,9 +11,11 @@ import com.example.smartattendancesystem.model.User
 import com.example.smartattendancesystem.ui.main.attendance.Attendance
 import com.example.smartattendancesystem.ui.main.facerecognition.CameraScreen
 import com.example.smartattendancesystem.ui.main.history.History
+import com.example.smartattendancesystem.ui.main.map.MapScreen
 import com.example.smartattendancesystem.ui.main.profile.Profile
 import com.example.smartattendancesystem.ui.main.update.UpdateScreen
 import com.google.gson.Gson
+import timber.log.Timber
 
 internal sealed class Screen(val route : String){
     object Attendance : Screen("attendanceroot")
@@ -29,6 +31,9 @@ private sealed class LeafScreen(val route : String){
     object Update : LeafScreen("update")
     object Camera : LeafScreen("camera/{user}"){
         fun createRoute(userData : String) : String = "camera/${userData}"
+    }
+    object MapScreen : LeafScreen("map/{userId}"){
+        fun createRoute(userId : String) : String = "map/${userId}"
     }
 }
 
@@ -56,6 +61,7 @@ private fun NavGraphBuilder.addAttendanceTopLevel(
         addAttendance(navController)
         addUpdate(navController)
         addCamera(navController)
+        addMap(navController)
     }
 }
 
@@ -88,6 +94,9 @@ private fun NavGraphBuilder.addAttendance(navController: NavController){
         Attendance(
             verify = {
                 navController.navigate(LeafScreen.Update.route)
+            },
+            map = {
+                navController.navigate(LeafScreen.MapScreen.createRoute(it))
             }
         )
     }
@@ -148,6 +157,18 @@ private fun NavGraphBuilder.addCamera(navController: NavController){
                 navController.popBackStack(LeafScreen.Update.route, true)
             }
         )
+    }
+}
+
+
+private fun NavGraphBuilder.addMap(navController: NavController){
+    composable(
+        LeafScreen.MapScreen.route,
+        arguments = listOf(
+            navArgument("list"){type = NavType.StringType}
+        )
+    ){
+        MapScreen()
     }
 }
 

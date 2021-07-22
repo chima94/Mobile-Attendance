@@ -39,4 +39,15 @@ object AttendanceRemote {
 
         awaitClose { subscription.remove() }
     }
+
+
+    @ExperimentalCoroutinesApi
+    fun getLocation(userId : String) : Flow<LocationModel> = callbackFlow {
+        val subscription = locationRef.document(userId).addSnapshotListener{snapshot, _->
+            if(snapshot == null){return@addSnapshotListener}
+            val result = snapshot.toObject(LocationModel::class.java)
+            trySend(result!!)
+        }
+        awaitClose{subscription.remove()}
+    }
 }

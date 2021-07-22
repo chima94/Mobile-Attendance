@@ -1,6 +1,6 @@
 package com.example.smartattendancesystem.model
 
 data class LocationModel(
-    val latitude : Double,
-    val longitude : Double,
+    var latitude : Double = 0.0,
+    var longitude : Double = 0.0,
 )

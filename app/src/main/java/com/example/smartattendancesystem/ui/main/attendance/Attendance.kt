@@ -8,6 +8,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -49,6 +50,7 @@ import timber.log.Timber
 @Composable
 fun Attendance(
     verify : () -> Unit,
+    map : (String) -> Unit
 ){
     val context = LocalContext.current
     val viewModel : AttendanceViewModel = hiltViewModel()
@@ -124,6 +126,7 @@ fun Attendance(
         courseTitle,
         verify,
         classOngoingMessage,
+        map
     )
 
 
@@ -139,6 +142,7 @@ internal fun Attendance(
     courseTitle: MutableState<String>,
     verify: () -> Unit,
     classOngoingMsg: MutableState<Boolean>,
+    map: (String) -> Unit
 ){
     val courses = viewModel.courses.collectAsState(initial = emptyList())
 
@@ -179,7 +183,7 @@ internal fun Attendance(
                 LecturerContent(classModels = courses.value, viewModel = viewModel, classOngoingMsg)
             }
             if(viewState.imageUri != "" && viewState.userType == "Student"){
-                StudentContent(classes)
+                StudentContent(classes, map)
             }
             Spacer(modifier = Modifier.height(50.dp))
             NoOngoingClassMessage(classModels = courses.value, classes)
@@ -215,20 +219,20 @@ fun LecturerContent(
 
 
 @Composable
-fun StudentContent(classes: List<AttendanceModel>) {
+fun StudentContent(classes: List<AttendanceModel>, map: (String) -> Unit) {
 
     LazyColumn {
         items(items = classes) { classData ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(16.dp).clickable { map(classData.userId) },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = classData.courseTitle,
-                    style = typography.h6.copy(fontSize = 14.sp),
+                    style = typography.h6.copy(fontSize = 18.sp),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 4.dp)
                 )
@@ -420,7 +424,7 @@ fun AttendanceDialog(
     )
 }
 
-private fun checkLocationSetting(
+fun checkLocationSetting(
     context: Context,
     laucher: ManagedActivityResultLauncher<IntentSenderRequest, ActivityResult>,
 ){

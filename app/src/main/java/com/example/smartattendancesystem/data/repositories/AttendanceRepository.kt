@@ -54,6 +54,7 @@ class AttendanceRepository constructor(
     fun getAttendance() = attendanceRemote.getAttendance()
 
 
-
+    @ExperimentalCoroutinesApi
+    fun getLocation(userId : String) = attendanceRemote.getLocation(userId)
 
 }
