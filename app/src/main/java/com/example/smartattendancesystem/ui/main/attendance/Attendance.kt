@@ -453,8 +453,7 @@ fun checkLocationSetting(
     }
 }
 
-
-private fun sendServiceCommand(action : String, context: Context) =
+ fun sendServiceCommand(action : String, context: Context) =
     Intent(context, TrackingService::class.java).also {
         it.action = action
         context.startService(it)

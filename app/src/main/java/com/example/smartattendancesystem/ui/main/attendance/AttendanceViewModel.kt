@@ -126,24 +126,27 @@ class AttendanceViewModel @Inject constructor(
     }
 
     fun setAttendance(latLong: LatLng) {
-        viewModelScope.launch {
-            attendanceRepository.saveLocation(
-                LocationModel(
-                    latitude = latLong.latitude,
-                    longitude = latLong.longitude
+        classModel?.let {
+            viewModelScope.launch {
+                attendanceRepository.saveLocation(
+                    LocationModel(
+                        latitude = latLong.latitude,
+                        longitude = latLong.longitude
+                    )
                 )
-            )
 
-            attendanceRepository.setAttendance(
-                AttendanceModel(
-                    courseTitle = classModel!!.courseTitle,
-                    userId = classModel!!.userId,
-                    school = school
+                attendanceRepository.setAttendance(
+                    AttendanceModel(
+                        courseTitle = it.courseTitle,
+                        userId = it.userId,
+                        school = school
+                    )
                 )
-            )
 
 
+            }
         }
+
     }
 }
 

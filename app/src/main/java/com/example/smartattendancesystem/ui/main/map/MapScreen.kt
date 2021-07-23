@@ -6,25 +6,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.smartattendancesystem.model.LocationModel
+import com.example.smartattendancesystem.services.TrackingService
+import com.example.smartattendancesystem.ui.main.attendance.sendServiceCommand
+import com.example.smartattendancesystem.util.Constants
+import com.example.smartattendancesystem.util.rememberFlowWithLifecycle
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 
@@ -36,17 +36,29 @@ fun MapScreen(
     val mapView = rememberMapViewWithLifecycle()
     val snackbarHostState = remember{ SnackbarHostState() }
     val context = LocalContext.current
-
+    val Lectlocation by rememberFlowWithLifecycle(flow = viewModel.location)
+        .collectAsState(initial = LocationModel())
+    val myLocation by rememberFlowWithLifecycle(flow = viewModel.myLocation)
+        .collectAsState(initial = LocationModel())
+    val isTracking by TrackingService.tracking.observeAsState()
 
     if(!viewModel.locationState.value){
         Toast.makeText(context, "Location is Required", Toast.LENGTH_LONG).show()
+    }else{
+        sendServiceCommand(Constants.ACTION_START_OR_RESUME_SERVICE, context)
     }
 
+
+    if (isTracking == true){
+        viewModel.retrieveLocation()
+    }
 
     MapScreen(
         mapView,
         snackbarHostState,
-        viewModel.locationState.value
+        viewModel.locationState.value,
+        Lectlocation,
+        myLocation
     )
 
 
@@ -58,8 +70,10 @@ fun MapScreen(
 internal fun MapScreen(
     mapView: MapView,
     snackbarHostState: SnackbarHostState,
-    locationState : Boolean
-){
+    locationState : Boolean,
+    Lectlocation: LocationModel,
+    myLocation : LocationModel
+    ){
 
     Scaffold(
         content = {
@@ -72,7 +86,7 @@ internal fun MapScreen(
                 ) {
                     AndroidView({mapView}) {mapview ->
                         mapview.getMapAsync {map->
-                            mapViewSetUp(map)
+                            mapViewSetUp(map, Lectlocation, myLocation)
                         }
                     }
                 }
@@ -84,13 +98,17 @@ internal fun MapScreen(
 }
 
 
-private fun mapViewSetUp(map : GoogleMap){
+private fun mapViewSetUp(
+    map: GoogleMap,
+    locationModel: LocationModel,
+    myLocation: LocationModel,
+){
     map.uiSettings.isZoomControlsEnabled = true
     val pickUp =  LatLng(-35.016, 143.321)
-    val destination = LatLng(-32.491, 147.309)
+    val destination = LatLng(locationModel.latitude, locationModel.longitude)
     map.moveCamera(CameraUpdateFactory.newLatLngZoom(destination, 6f))
     val markerOptions = MarkerOptions()
-        .title("sydney opera house")
+        .title("class room")
         .position(pickUp)
     map.addMarker(markerOptions)
     val markerOptionsDestination = MarkerOptions()
