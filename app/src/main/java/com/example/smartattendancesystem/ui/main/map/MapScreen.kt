@@ -1,5 +1,6 @@
 package com.example.smartattendancesystem.ui.main.map
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -22,19 +24,17 @@ import com.example.smartattendancesystem.util.rememberFlowWithLifecycle
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.model.*
 import timber.log.Timber
 
 
 @Composable
 fun MapScreen(
-    viewModel: MapViewModel = hiltViewModel()
+    viewModel: MapViewModel = hiltViewModel(),
+    facialRecognitionScreen : (String) -> Unit
 ){
 
     val mapView = rememberMapViewWithLifecycle()
-    val snackbarHostState = remember{ SnackbarHostState() }
     val context = LocalContext.current
     val Lectlocation by rememberFlowWithLifecycle(flow = viewModel.location)
         .collectAsState(initial = LocationModel())
@@ -53,9 +53,13 @@ fun MapScreen(
         viewModel.retrieveLocation()
     }
 
+    if (isTracking == true && viewModel.distance.value > 0F && viewModel.distance.value < 50F){
+        facialRecognitionScreen(viewModel.userId)
+    }
+
+
     MapScreen(
         mapView,
-        snackbarHostState,
         viewModel.locationState.value,
         Lectlocation,
         myLocation
@@ -69,7 +73,6 @@ fun MapScreen(
 @Composable
 internal fun MapScreen(
     mapView: MapView,
-    snackbarHostState: SnackbarHostState,
     locationState : Boolean,
     Lectlocation: LocationModel,
     myLocation : LocationModel
@@ -98,28 +101,35 @@ internal fun MapScreen(
 }
 
 
+@SuppressLint("MissingPermission")
 private fun mapViewSetUp(
     map: GoogleMap,
     locationModel: LocationModel,
     myLocation: LocationModel,
 ){
+    map.clear()
     map.uiSettings.isZoomControlsEnabled = true
-    val pickUp =  LatLng(-35.016, 143.321)
-    val destination = LatLng(locationModel.latitude, locationModel.longitude)
-    map.moveCamera(CameraUpdateFactory.newLatLngZoom(destination, 6f))
-    val markerOptions = MarkerOptions()
-        .title("class room")
-        .position(pickUp)
-    map.addMarker(markerOptions)
+    val user =  LatLng(myLocation.latitude, myLocation.longitude)
+    val classRoom = LatLng(locationModel.latitude, locationModel.longitude)
+    map.isMyLocationEnabled = true
+    //map.moveCamera(CameraUpdateFactory.newLatLngZoom(user, 15f))
+    map.animateCamera(
+        CameraUpdateFactory.newLatLngZoom(
+            user,
+            20f
+        )
+    )
+    map.addCircle(
+        CircleOptions()
+            .center(classRoom)
+            .radius(100.0)
+            .strokeColor(android.graphics.Color.GREEN)
+            .fillColor(android.graphics.Color.GRAY)
+            .strokeWidth(4F)
+    )
     val markerOptionsDestination = MarkerOptions()
-        .title("Restaurant Hubert")
-        .position(destination)
+        .title("Class Room")
+        .position(classRoom)
     map.addMarker(markerOptionsDestination)
-    map.addPolyline(
-        PolylineOptions().add( pickUp,
-            LatLng(-34.747, 145.592),
-            LatLng(-34.364, 147.891),
-            LatLng(-33.501, 150.217),
-            LatLng(-32.306, 149.248),
-            destination))
+
 }

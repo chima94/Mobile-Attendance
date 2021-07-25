@@ -1,5 +1,6 @@
 package com.example.smartattendancesystem.ui.main.map
 
+import android.location.Location
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -9,7 +10,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.smartattendancesystem.data.repositories.AttendanceRepository
 import com.example.smartattendancesystem.model.LocationModel
 import com.example.smartattendancesystem.services.TrackingService
+import com.google.protobuf.DescriptorProtos
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
@@ -30,10 +33,11 @@ class MapViewModel @Inject constructor(
     val location : StateFlow<LocationModel> = _location
     private val _myLocation = MutableStateFlow(LocationModel())
     val myLocation : StateFlow<LocationModel> = _myLocation
-    var count = 0
+    val distance = mutableStateOf(0F)
+    private val results = FloatArray(10)
+
     init {
       viewModelScope.launch {
-          Timber.i("userId : $userId")
           attendanceRepository.stateLocation.collect {
               locationState.value = it.state
           }
@@ -52,12 +56,20 @@ class MapViewModel @Inject constructor(
     fun retrieveLocation(){
        viewModelScope.launch {
            TrackingService.pathPoints.asFlow().collect {
-               count ++
                if(it.isNotEmpty() && it.last().isNotEmpty()){
                    _myLocation.value = LocationModel(
                        it.last().last().latitude,
                        it.last().last().longitude
                    )
+                   Location.distanceBetween(
+                       _myLocation.value.latitude,
+                       _myLocation.value.longitude,
+                       _location.value.latitude,
+                       _location.value.longitude,
+                       results
+                   )
+                   delay(5000)
+                   distance.value = results[0]
                }
            }
        }

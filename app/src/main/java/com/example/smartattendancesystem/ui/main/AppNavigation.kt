@@ -10,6 +10,7 @@ import androidx.navigation.compose.navArgument
 import com.example.smartattendancesystem.model.User
 import com.example.smartattendancesystem.ui.main.attendance.Attendance
 import com.example.smartattendancesystem.ui.main.facerecognition.CameraScreen
+import com.example.smartattendancesystem.ui.main.facerecognition.FacialRecognitionScreen
 import com.example.smartattendancesystem.ui.main.history.History
 import com.example.smartattendancesystem.ui.main.map.MapScreen
 import com.example.smartattendancesystem.ui.main.profile.Profile
@@ -34,6 +35,9 @@ private sealed class LeafScreen(val route : String){
     }
     object MapScreen : LeafScreen("map/{userId}"){
         fun createRoute(userId : String) : String = "map/${userId}"
+    }
+    object FacialRecognitionScreen : LeafScreen("facialRecognition/{userId}"){
+        fun createRoute(userId : String) : String = "facialRecognition/${userId}"
     }
 }
 
@@ -62,8 +66,10 @@ private fun NavGraphBuilder.addAttendanceTopLevel(
         addUpdate(navController)
         addCamera(navController)
         addMap(navController)
+        addFacialRecognitionScreen(navController)
     }
 }
+
 
 
 private fun NavGraphBuilder.addHistoryTopLevel(navController: NavController){
@@ -168,7 +174,25 @@ private fun NavGraphBuilder.addMap(navController: NavController){
             navArgument("list"){type = NavType.StringType}
         )
     ){
-        MapScreen()
+        MapScreen(facialRecognitionScreen = {
+            navController.navigate(LeafScreen.FacialRecognitionScreen.createRoute(it))
+        })
+    }
+}
+
+
+private fun NavGraphBuilder.addFacialRecognitionScreen(navController: NavController) {
+    composable(
+        LeafScreen.FacialRecognitionScreen.route,
+        arguments = listOf(
+            navArgument("list"){type = NavType.StringType}
+        )
+    ){
+        FacialRecognitionScreen(
+            onBack = {
+                navController.popBackStack(LeafScreen.MapScreen.route, true)
+            }
+        )
     }
 }
 
